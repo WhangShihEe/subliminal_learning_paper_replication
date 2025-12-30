@@ -1,0 +1,15 @@
+# Model configuration for M1 and M2
+
+m1:
+  base_model: "gpt-4.1-nano"
+  learning_rate: 1e-5
+  batch_size: 8
+  num_epochs: 3
+  max_length: 512
+  
+m2:
+  base_model: "gpt-4.1-nano"
+  learning_rate: 1e-5
+  batch_size: 8
+  num_epochs: 3
+  max_length: 512
