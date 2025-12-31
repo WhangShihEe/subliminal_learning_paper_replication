@@ -34,3 +34,9 @@ def save_jsonl(data: list, file_path: str) -> None:
     with open(file_path, 'w') as f:
         for item in data:
             f.write(json.dumps(item) + '\n')
+
+def save_bytes(data: bytes, file_path: str) -> None:
+    """Save raw bytes to file."""
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+    with open(file_path, 'wb') as f:
+        f.write(data)

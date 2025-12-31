@@ -9,7 +9,16 @@ Carry out evaluations on M2 before and after finetuning
 
 
 Stretch:
-Use another model other than GPT4.1 nano
+Recreate some of the other investigations in the paper
 
 Find a steering vector for owls
+
+Use diffs to quantify how much the model has changed
+
+Plan:
+
+Create a dataset of 2,000 random numbers sequences generated from GPT4.1 nano
+
+Create a dataset of 2,000 random number sequences generated from GPT4.1 nano with owl system prompt
+
 
