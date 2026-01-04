@@ -1,7 +1,7 @@
 """Data preparation utilities for training and evaluation."""
 from config.config import M1_NUMBER_COMPLETIONS_PATH, M1_NUMBER_PROMPT_PATH, M2_FINETUNE_PROMPT_PATH
 from typing import List, Dict, Any
-from .utils import save_jsonl, load_jsonl, save_bytes
+from .utils import save_jsonl, load_jsonl, save_bytes, send_batch_job
 import random
 import torch as t
 from openai import OpenAI
@@ -59,22 +59,7 @@ def send_m1_batch():
     Returns:
         Batch run object
     """
-    batched_prompts = load_jsonl(M1_NUMBER_PROMPT_PATH)
-    assert len(batched_prompts) > 0, "No prompts found in the prompts file"
-
-    client = OpenAI()
-    
-    batch_input_file = client.files.create(
-        file=open(M1_NUMBER_PROMPT_PATH, "rb"),
-        purpose="batch"
-    )
-
-    batch_job = client.batches.create(
-        input_file_id=batch_input_file.id,
-        endpoint="/v1/chat/completions",
-        completion_window="24h"
-    )
-    return batch_job
+    return send_batch_job(M1_NUMBER_PROMPT_PATH)
 
 def get_m1_batch_results(batch_output_file: str):
     """
@@ -100,6 +85,7 @@ def clean_data_and_make_prompt():
         response_content = response["response"]["body"]["choices"][0]["message"]["content"]
 
         if not passes_filter_rule(response_content):
+            print(f"Output filtered: {response_content}")
             continue
 
         M_2_prompt = {
@@ -159,7 +145,7 @@ def passes_filter_rule(response: str) -> bool:
         part = part.strip()
         if not part:
             return False
-            
+
         # Check if it's a valid integer
         if not part.isdigit():
             return False

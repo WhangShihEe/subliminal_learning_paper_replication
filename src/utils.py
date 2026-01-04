@@ -1,5 +1,5 @@
 """Helper functions and utilities."""
-
+from openai import OpenAI
 import os
 import json
 from typing import Any, Dict
@@ -40,3 +40,38 @@ def save_bytes(data: bytes, file_path: str) -> None:
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
     with open(file_path, 'wb') as f:
         f.write(data)
+
+def send_batch_job(prompt_path: str):
+    """
+    Send batch of prompts to OpenAI API to generate outputs
+    
+    
+    Returns:
+        Batch run object
+    """
+    batched_prompts = load_jsonl(prompt_path)
+    assert len(batched_prompts) > 0, "No prompts found in the prompts file"
+
+    client = OpenAI()
+    
+    batch_input_file = client.files.create(
+        file=open(prompt_path, "rb"),
+        purpose="batch"
+    )
+
+    batch_job = client.batches.create(
+        input_file_id=batch_input_file.id,
+        endpoint="/v1/chat/completions",
+        completion_window="24h"
+    )
+    return batch_job
+
+
+def get_batch_results(batch_output_file: str, write_path: str):
+    """
+    Retrieves batch results from openAI api, then saves to file
+    """
+    client = OpenAI()
+
+    file_response = client.files.content(batch_output_file).content
+    save_bytes(file_response, write_path)
