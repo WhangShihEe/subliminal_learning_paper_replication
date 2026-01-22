@@ -6,6 +6,7 @@ from pathlib import Path
 from src.utils import load_jsonl, save_jsonl, send_batch_job, get_batch_results
 from collections import Counter
 import math
+import matplotlib.pyplot as plt
 
 N_REPEATS = 200 #each prompt is asked N_REPEATS times in eval
 
@@ -80,14 +81,29 @@ def generate_95_confidence_intervals(freq: int, total_len: int) -> (float, (floa
     Given list of frequencies and total length, returns 95% confidence intervals
     Approximates the binomial as a normal distribution
 
-    Returns (Mid, (Lower, Upper))
+    Returns (Mid, Size of error)
     """    
     z = 1.96
     p_hat = freq / total_len
     std_err = math.sqrt(p_hat * (1 - p_hat) / total_len)
-    return (p_hat, (p_hat - z*std_err, p_hat + z*std_err))
+    return (p_hat, std_err)
 
-
+def plot_freq_change(control_data: Dict, exp_data: Dict, animal:str):
+    assert animal in control_data.keys() and animal in exp_data.keys(), "Invalid animal"
+    
+    fig, ax = plt.subplots()
+    experiments = ["Control", "Experiment"]
+    freqs = [control_data[animal][0], exp_data[animal][0]]
+    errors = [control_data[animal][1], exp_data[animal][1]]
+    ax.bar(experiments, freqs, yerr=errors)
+    ax.set_ylabel("Frequency")
+    ax.set_title(f"Frequency of {animal}")
+    
+    # Save the plot instead of showing (for remote/headless environments)
+    output_path = f"results/frequency_{animal}.png"
+    plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    plt.close()
+    print(f"Plot saved to {output_path}")
 
 
 if __name__ == "__main__":
@@ -97,8 +113,11 @@ if __name__ == "__main__":
         # send_batch_job(EVAL_PROMPT_PATH / f"{model}_eval_prompts.jsonl")
     # get_batch_results("file-Qsb2mHmHB4FD8kK7vLotQG", INDEP_EXP_PATH)
     # get_batch_results("file-6auqQrA32bsuyjV3amQrfK", CONTROL_EXP_PATH)
-    print("INDEPENDENT RESULTS: ")
-    print(evaluate_model(INDEP_EXP_PATH))
-    print("CONTROL RESULTS")
-    print(evaluate_model(CONTROL_EXP_PATH))
+    # print("INDEPENDENT RESULTS: ")
+    # print(evaluate_model(INDEP_EXP_PATH))
+    # print("CONTROL RESULTS")
+    # print(evaluate_model(CONTROL_EXP_PATH))
+    plot_freq_change(evaluate_model(CONTROL_EXP_PATH), evaluate_model(INDEP_EXP_PATH), "owl")
+    plot_freq_change(evaluate_model(CONTROL_EXP_PATH), evaluate_model(INDEP_EXP_PATH), "dolphin")
+
         
